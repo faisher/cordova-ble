@@ -1552,7 +1552,7 @@ public class BLE
 			mCurrentOpContext = null;
 			process();
 		}
-
+        private boolean first = true;
 		@Override
 		public void onDescriptorWrite(BluetoothGatt g, BluetoothGattDescriptor d, int status)
 		{
@@ -1563,6 +1563,15 @@ public class BLE
 					mCurrentOpContext.error(status);
 				}
 			}
+			if (first) {
+                first = false;
+                if (Build.VERSION.SDK_INT >= 21) {
+                    if (!g.requestMtu(512)) {
+                        System.err.println("requestMtu failed");
+                        return;
+                    }
+                }
+            }
 			mDontReportWriteDescriptor = false;
 			mCurrentOpContext = null;
 			process();
@@ -1573,6 +1582,12 @@ public class BLE
 		{
 			CallbackContext cc = mNotifications.get(c);
 			keepCallback(cc, c.getValue());
+		}
+
+		@Override
+		public void onMtuChanged(BluetoothGatt gatt, int mtu, int status)
+		{
+			System.out.println("onMtuChanged("+mtu+")"+status);
 		}
 	}
 
